@@ -24,13 +24,11 @@ public class GameScreen implements Screen {
 	final SpidersLair game;
 
 	private Texture dropImage;
-	private Texture bucketImage;
 	private Sound dropSound;
 	//private Music bgm;
 
 	private OrthographicCamera camera;
 
-	private Rectangle bucket;
 	private Player player;
 	private int playerRad = 25;
 
@@ -66,7 +64,6 @@ public class GameScreen implements Screen {
 		game = sl;
 
 		dropImage = new Texture(Gdx.files.internal("droplet.png"));
-		bucketImage = new Texture(Gdx.files.internal("bucket.png"));
 
 		dropSound = Gdx.audio.newSound(Gdx.files.internal("coin.wav"));
 		dropSound.setVolume(lastDropTime, 0.4f);
@@ -77,12 +74,6 @@ public class GameScreen implements Screen {
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, game.width, game.height);
-
-		bucket = new Rectangle();
-		bucket.width = 64;
-		bucket.height = 64;
-		bucket.x = game.width / 2 - bucket.height / 2;
-		bucket.y = 20;
 
 		player = new Player(game.width/2 - playerRad, game.height/2 - playerRad, playerRad);
 
@@ -146,7 +137,6 @@ public class GameScreen implements Screen {
 		game.batch.begin();
 		game.font.draw(game.batch, "Drops Collected: " + dropsGathered, 0, game.height);
 		game.font.draw(game.batch, "Drops Shot: " + dropsShot, 0, game.height - 20);
-		game.batch.draw(bucketImage, bucket.x, bucket.y);
 		for (Rectangle raindrop : raindrops) {
 			game.batch.draw(dropImage, raindrop.x, raindrop.y);
 		}
@@ -157,35 +147,12 @@ public class GameScreen implements Screen {
 				(float) (180 * player.theta / Math.PI), 0, 0, player.texture.getWidth(), player.texture.getHeight(), false, false);
 		game.batch.end();
 
-		if (Gdx.input.isTouched()) {
-			Vector3 touchPos = new Vector3();
-			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-			camera.unproject(touchPos);
-			bucket.x = touchPos.x - bucket.width / 2;
-		}
-
-		if (Gdx.input.isKeyPressed(Keys.LEFT))
-			bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-		if (Gdx.input.isKeyPressed(Keys.RIGHT))
-			bucket.x += 200 * Gdx.graphics.getDeltaTime();
-
-		if (bucket.x < 0)
-			bucket.x = 0;
-		if (bucket.x > game.width - bucket.width)
-			bucket.x = game.width - bucket.width;
-
 		if (TimeUtils.nanoTime() - lastDropTime > 1000000000)
 			spawnRaindrop();
 
 		Iterator<Rectangle> iter = raindrops.iterator();
 		while (iter.hasNext()) {
 			Rectangle raindrop = iter.next();
-
-			if (raindrop.overlaps(bucket)) {
-				dropSound.play(dropVolume);
-				dropsGathered++;
-				iter.remove();
-			}
 
 			raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
 			if (raindrop.y + raindrop.height < 0)
@@ -362,7 +329,6 @@ public class GameScreen implements Screen {
 
 	public void dispose() {
 		dropImage.dispose();
-		bucketImage.dispose();
 		dropSound.dispose();
 		//bgm.dispose();
 	}
