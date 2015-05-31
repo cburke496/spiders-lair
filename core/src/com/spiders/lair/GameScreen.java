@@ -11,6 +11,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -28,6 +29,7 @@ public class GameScreen implements Screen {
 	//private Music bgm;
 
 	private OrthographicCamera camera;
+	private ShapeRenderer shapeRenderer;
 
 	private Player player;
 	private int playerRad = 25;
@@ -74,13 +76,15 @@ public class GameScreen implements Screen {
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, game.width, game.height);
+		
+		shapeRenderer = new ShapeRenderer();
 
 		player = new Player(game.width/2 - playerRad, game.height/2 - playerRad, playerRad);
 
 		raindrops = new Array<Rectangle>();
 		spawnRaindrop();
 		
-		map = new Map(5,5);
+		map = new Map(10,10);
 		//System.out.println(map);
 		
 		Gdx.input.setInputProcessor(new InputAdapter() {
@@ -132,6 +136,9 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		camera.update();
+		
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		map.drawMap(shapeRenderer);
 
 		game.batch.setProjectionMatrix(camera.combined);
 		game.batch.begin();
