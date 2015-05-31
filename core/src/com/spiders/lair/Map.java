@@ -1,12 +1,25 @@
 package com.spiders.lair;
 
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.utils.Array;
+
 import java.util.HashMap;
 
 public class Map {
 	
 	//The chance that a newly-created room will be connected to the previous room
 	private static final float connectionChance = 0.5f;
+	
+	//Colors given as RGB values between 0 and 1
+	private static final float[] wallColor = {0.35f, 0.35f, 0.35f};
+	private static final float[] floorColor = {0.6f, 0.85f, 0.92f};
+	
+	//The size of any wall given as a percentage of the height of the whole room
+	private static final float wallSize = 0.2f;
+	
+	//The size of any doorway given as a percentage of the height of the whole room
+	private static final float doorSize = 0.3f;
 	
 	private Array<Array<Room>> data;
 	private Room currentRoom;
@@ -148,7 +161,73 @@ public class Map {
 		newArray.add(lastChecked);
 		roomConnections.put(newRoom, newArray);
 	}
-
+	
+	public void drawMap(ShapeRenderer sr) {
+		int height = data.size;
+		int width = data.get(0).size;
+		int roomW = SpidersLair.width / width;
+		int roomH = SpidersLair.height / height;
+		int wallOffset = (int) (wallSize / 2 * roomH);
+		//For all existing rooms, this draws the walls and then the floors
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				if(data.get(y).get(x) != null) {
+					sr.begin(ShapeType.Filled);
+					sr.setColor(wallColor[0],wallColor[1],wallColor[2],1f);
+					sr.rect(x*roomW-wallOffset,y*roomH-wallOffset,roomW+2*wallOffset,roomH+2*wallOffset);
+					sr.setColor(floorColor[0],floorColor[1],floorColor[2],1f);
+					sr.rect(x*roomW+wallOffset,y*roomH+wallOffset,roomW-2*wallOffset,roomH-2*wallOffset);
+					sr.end();
+				}
+			}
+		}
+		
+		int doorOffset = (int) (doorSize / 2 * roomH);
+		
+		//For all rooms that are horizontally adjacent, this checks whether or not
+		//they should be connected into one room, and then either connects them
+		//or draws a doorway between them
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width - 1; x++) {
+				Room current = data.get(y).get(x);
+				if(current != null) {
+					Room right = data.get(y).get(x+1);
+					if(right != null) {
+						sr.begin(ShapeType.Filled);
+						sr.setColor(floorColor[0],floorColor[1],floorColor[2],1f);
+						
+						Array<Room> connections = roomConnections.get(current);
+						if(connections != null && connections.contains(right, true))
+							sr.rect((x+1)*roomW-wallOffset,y*roomH+wallOffset,2*wallOffset,roomH-2*wallOffset);
+						else
+							sr.rect((x+1)*roomW-wallOffset,(y+0.5f)*roomH-doorOffset,2*wallOffset,2*doorOffset);
+						sr.end();
+					}
+				}
+			}
+		}
+		//This does the same as the previous loop for vertically adjacent rooms
+		for(int y = 0; y < height - 1; y++) {
+			for(int x = 0; x < width; x++) {
+				Room current = data.get(y).get(x);
+				if(current != null) {
+					Room up = data.get(y+1).get(x);
+					if(up != null) {
+						sr.begin(ShapeType.Filled);
+						sr.setColor(floorColor[0],floorColor[1],floorColor[2],1f);
+						
+						Array<Room> connections = roomConnections.get(current);
+						if(connections != null && connections.contains(up,true))
+							sr.rect(x*roomW+wallOffset,(y+1)*roomH-wallOffset,roomW-2*wallOffset,wallOffset*2);
+						else
+							sr.rect((x+0.5f)*roomW-doorOffset,(y+1)*roomH-wallOffset,2*doorOffset,2*wallOffset);
+						sr.end();
+					}
+				}
+			}
+		}
+	}
+	
 	public String toString() {
 		String output = "";
 		for(int y = 0; y < data.size; y++) {
