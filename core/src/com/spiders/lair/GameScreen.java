@@ -14,7 +14,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
@@ -27,7 +29,7 @@ public class GameScreen implements Screen {
 	private Texture dropImage;
 	private Sound dropSound;
 	//private Music bgm;
-
+	
 	private OrthographicCamera camera;
 	private ShapeRenderer shapeRenderer;
 
@@ -75,11 +77,11 @@ public class GameScreen implements Screen {
 		//bgm.setLooping(true);
 
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, game.width, game.height);
+		camera.setToOrtho(false, SpidersLair.WIDTH, SpidersLair.HEIGHT);
 		
 		shapeRenderer = new ShapeRenderer();
 
-		player = new Player(game.width/2 - playerRad, game.height/2 - playerRad, playerRad);
+		player = new Player(SpidersLair.WIDTH/2 - playerRad, SpidersLair.HEIGHT/2 - playerRad, playerRad);
 
 		raindrops = new Array<Rectangle>();
 		spawnRaindrop();
@@ -135,6 +137,8 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0.8f, 0.8f, 0.8f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+		Vector3 coords = new Vector3(player.x + playerRad, player.y + playerRad,0);
+		camera.translate(coords.sub(camera.position));
 		camera.update();
 		
 		shapeRenderer.setProjectionMatrix(camera.combined);
@@ -142,8 +146,8 @@ public class GameScreen implements Screen {
 
 		game.batch.setProjectionMatrix(camera.combined);
 		game.batch.begin();
-		game.font.draw(game.batch, "Drops Collected: " + dropsGathered, 0, game.height);
-		game.font.draw(game.batch, "Drops Shot: " + dropsShot, 0, game.height - 20);
+		game.font.draw(game.batch, "Drops Collected: " + dropsGathered, 0, SpidersLair.HEIGHT);
+		game.font.draw(game.batch, "Drops Shot: " + dropsShot, 0, SpidersLair.HEIGHT - 20);
 		for (Rectangle raindrop : raindrops) {
 			game.batch.draw(dropImage, raindrop.x, raindrop.y);
 		}
@@ -177,8 +181,8 @@ public class GameScreen implements Screen {
 		Rectangle raindrop = new Rectangle();
 		raindrop.width = 64;
 		raindrop.height = 64;
-		raindrop.x = MathUtils.random(0, game.width - raindrop.width);
-		raindrop.y = game.height;
+		raindrop.x = MathUtils.random(0, SpidersLair.WIDTH - raindrop.width);
+		raindrop.y = SpidersLair.HEIGHT;
 		raindrops.add(raindrop);
 		lastDropTime = TimeUtils.nanoTime();
 	}
@@ -306,8 +310,8 @@ public class GameScreen implements Screen {
 			
 			b.x += b.dx;
 			b.y += b.dy;
-			if(b.x < 0 - 2 * b.radius || b.x > game.width ||
-			   b.y < 0 - 2 * b.radius || b.y > game.height) {
+			if(b.x < 0 - 2 * b.radius || b.x > SpidersLair.WIDTH ||
+			   b.y < 0 - 2 * b.radius || b.y > SpidersLair.HEIGHT) {
 				iter.remove();
 				bulletPool.free(b);
 			}

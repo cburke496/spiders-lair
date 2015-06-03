@@ -9,8 +9,8 @@ public class SpidersLair extends Game{
 	public SpriteBatch batch;
 	public BitmapFont font;
 	
-	public static final int width = 800;
-	public static final int height = 480;
+	public static final int WIDTH = 800;
+	public static final int HEIGHT = 480;
 	
 	public void create() {
 		batch = new SpriteBatch();

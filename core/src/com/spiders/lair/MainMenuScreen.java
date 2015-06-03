@@ -15,7 +15,7 @@ public class MainMenuScreen implements Screen{
 		game = sl;
 		
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, game.width, game.height);
+		camera.setToOrtho(false, SpidersLair.WIDTH, SpidersLair.HEIGHT);
 	}
 
 	@Override
