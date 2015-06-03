@@ -212,8 +212,11 @@ public class Map {
 	public void drawMap(ShapeRenderer sr) {
 		int height = data.size;
 		int width = data.get(0).size;
-		int roomW = SpidersLair.width / width;
-		int roomH = SpidersLair.height / height;
+		//int roomW = SpidersLair.width / width;
+		//int roomH = SpidersLair.height / height;
+		int roomW = 800;
+		int roomH = 480;
+		
 		int wallOffset = (int) (WALL_SIZE / 2 * roomH);
 		//For all existing rooms, this draws the walls and then the floors
 		for(int y = 0; y < height; y++) {
