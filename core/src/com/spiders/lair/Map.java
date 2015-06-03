@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class Map {
 	
-	//The chance that a newly-created room will be connected to the previous room
+	//The chance that a newly-created room will be a part to the previous room
 	private static final float ENLARGEN_CHANCE = 0.3f;
 	
 	//The chance that the path will go away from the center
@@ -66,6 +66,8 @@ public class Map {
 		
 		//This loop continually sets x and y to new coordinates closer and closer
 		//to the center, until they finally reach the center coordinates
+		//However, there is a STRAY_CHANCE chance for both directions that it 
+		//will go the opposite way
 		while(x != cx || y != cy) {
 			int newX = x, newY = y;
 			if(x > cx) {
@@ -110,7 +112,8 @@ public class Map {
 						data.get(y).set(newX, newRoom);
 						
 						//There is a chance that the newly-created room will be
-						//connected to the previous room
+						//part of the previous room, and if it isn't create a doorway
+						//between the two rooms
 						if (Math.random() < ENLARGEN_CHANCE) {
 							enlargen(lastChecked, newRoom);
 						} else {
@@ -150,15 +153,12 @@ public class Map {
 					//possible for both (newX,y) and (x,newY) to be null
 					assert hRoom != null || vRoom != null;
 					
-					if(Math.random() < 0.5) {
-						lastChecked = hRoom == null ? vRoom : hRoom;
-						data.get(y).get(x).addConnection(lastChecked);
-						lastChecked.addConnection(data.get(y).get(x));
-						
-					}
-					else {
-						lastChecked = vRoom == null ? hRoom : vRoom; 
-					}
+					if(Math.random() < 0.5) lastChecked = hRoom == null ? vRoom : hRoom;
+					else lastChecked = vRoom == null ? hRoom : vRoom; 
+					
+					//Connects whichever door is next on the path by door to the previous
+					data.get(y).get(x).addConnection(lastChecked);
+					lastChecked.addConnection(data.get(y).get(x));
 				}
 			}
 			
@@ -166,7 +166,8 @@ public class Map {
 			x = newX; y = newY;
 			
 			//If the room at (newX,newY) hasn't been created yet, it's created
-			//and has a chance of being connected to lastChecked
+			//and has a chance of being a part of lastChecked, and if it isn't
+			//it becomes connected to it by doorway
 			newRoom = data.get(y).get(x);
 			if(newRoom == null) {
 				newRoom = new Room(x,y);
@@ -231,8 +232,8 @@ public class Map {
 		int doorOffset = (int) (DOOR_SIZE / 2 * roomH);
 		
 		//For all rooms that are horizontally adjacent, this checks whether or not
-		//they should be connected into one room, and then either connects them
-		//or draws a doorway between them
+		//they should are all part of "one room", and whether there is a doorway
+		//between them, and draws either a connection or a doorway, respectively
 		for(int y = 0; y < height; y++) {
 			for(int x = 0; x < width - 1; x++) {
 				Room current = data.get(y).get(x);
