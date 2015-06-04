@@ -279,7 +279,7 @@ public class Map {
 		}
 	}
 	
-	public void drawMap(ShapeRenderer sr, float xcor, float ycor) {
+	public void drawCurrentArea(ShapeRenderer sr) {
 		int height = data.size;
 		int width = data.get(0).size;
 		//int roomX = (currentRoom.mapx() - width/2) * ROOM_WIDTH + ROOM_WIDTH/2;

@@ -144,7 +144,7 @@ public class GameScreen implements Screen {
 		
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		//map.drawMap(shapeRenderer); //Uncomment this line to display the entire map on the screen
-		map.drawMap(shapeRenderer, player.x, player.y);
+		map.drawCurrentArea(shapeRenderer);
 		//TODO: check where player is, if they're hitting a door/wall, update currentRoom, etc.
 
 		game.batch.setProjectionMatrix(camera.combined);
