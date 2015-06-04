@@ -2,6 +2,7 @@ package com.spiders.lair;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Array;
 
 import java.util.HashMap;
@@ -18,6 +19,8 @@ public class Map {
 	private static final float[] WALL_COLOR = {0.35f, 0.35f, 0.35f};
 	private static final float[] FLOOR_COLOR = {0.6f, 0.85f, 0.92f};
 	
+	private static final int ROOM_WIDTH = 800;
+	private static final int ROOM_HEIGHT = 480;
 	//The size of any wall given as a percentage of the height of the whole room
 	private static final float WALL_SIZE = 0.2f;
 	
@@ -212,11 +215,9 @@ public class Map {
 	public void drawMap(ShapeRenderer sr) {
 		int height = data.size;
 		int width = data.get(0).size;
-		//int roomW = SpidersLair.width / width;
-		//int roomH = SpidersLair.height / height;
-		int roomW = 800;
-		int roomH = 480;
-		
+		int roomW = SpidersLair.WIDTH / width;
+		int roomH = SpidersLair.HEIGHT / height;
+				
 		int wallOffset = (int) (WALL_SIZE / 2 * roomH);
 		//For all existing rooms, this draws the walls and then the floors
 		for(int y = 0; y < height; y++) {
@@ -271,6 +272,83 @@ public class Map {
 							sr.rect(x*roomW+wallOffset,(y+1)*roomH-wallOffset,roomW-2*wallOffset,wallOffset*2);
 						else if(current.connectedTo(up))
 							sr.rect((x+0.5f)*roomW-doorOffset,(y+1)*roomH-wallOffset,2*doorOffset,2*wallOffset);
+						sr.end();
+					}
+				}
+			}
+		}
+	}
+	
+	public void drawMap(ShapeRenderer sr, float xcor, float ycor) {
+		int height = data.size;
+		int width = data.get(0).size;
+		//int roomX = (currentRoom.mapx() - width/2) * ROOM_WIDTH + ROOM_WIDTH/2;
+		//int roomY = (currentRoom.mapy() - height/2) * ROOM_HEIGHT + ROOM_HEIGHT/2;
+		int roomX = currentRoom.mapx();
+		int roomY = currentRoom.mapy();
+		
+		sr.setTransformMatrix(new Matrix4().translate(-1*ROOM_WIDTH/2,-1*ROOM_HEIGHT/2,0));
+		
+		int wallOffset = (int) (WALL_SIZE / 2 * ROOM_HEIGHT);
+		//For the current room and the ones around it, this draws the walls and then the floors
+		for(int y = Math.max(0,roomY-1); y < Math.min(height,roomY+2); y++) {
+			for(int x = Math.max(0,roomX-1); x < Math.min(width,roomX+2); x++) {
+				if(data.get(y).get(x) != null) {
+					int rx = x - width/2;
+					int ry = y - height/2;
+					sr.begin(ShapeType.Filled);
+					sr.setColor(WALL_COLOR[0],WALL_COLOR[1],WALL_COLOR[2],1f);
+					sr.rect(rx*ROOM_WIDTH-wallOffset,ry*ROOM_HEIGHT-wallOffset,ROOM_WIDTH+2*wallOffset,ROOM_HEIGHT+2*wallOffset);
+					sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
+					sr.rect(rx*ROOM_WIDTH+wallOffset,ry*ROOM_HEIGHT+wallOffset,ROOM_WIDTH-2*wallOffset,ROOM_HEIGHT-2*wallOffset);
+					sr.end();
+				}
+			}
+		}
+		
+		int doorOffset = (int) (DOOR_SIZE / 2 * ROOM_HEIGHT);
+		
+		//For all rooms that are horizontally adjacent, this checks whether or not
+		//they should are all part of "one room", and whether there is a doorway
+		//between them, and draws either a connection or a doorway, respectively
+		for(int y = Math.max(0,roomY-1); y < Math.min(height,roomY+2); y++) {
+			for(int x = Math.max(0,roomX-1); x < Math.min(width - 1,roomX+2); x++) {
+				Room current = data.get(y).get(x);
+				if(current != null) {
+					Room right = data.get(y).get(x+1);
+					int rx = x - width/2;
+					int ry = y - height/2;
+					if(right != null) {
+						sr.begin(ShapeType.Filled);
+						sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
+						
+						Array<Room> roomSize = largeRooms.get(current);
+						if(roomSize != null && roomSize.contains(right, true))
+							sr.rect((rx+1)*ROOM_WIDTH-wallOffset,ry*ROOM_HEIGHT+wallOffset,2*wallOffset,ROOM_HEIGHT-2*wallOffset);
+						else if(current.connectedTo(right))
+							sr.rect((rx+1)*ROOM_WIDTH-wallOffset,(ry+0.5f)*ROOM_HEIGHT-doorOffset,2*wallOffset,2*doorOffset);
+						sr.end();
+					}
+				}
+			}
+		}
+		//This does the same as the previous loop for vertically adjacent rooms
+		for(int y = Math.max(0,roomY-1); y < Math.min(height - 1,roomY+2); y++) {
+			for(int x = Math.max(0,roomX-1); x < Math.min(width,roomX+2); x++) {
+				Room current = data.get(y).get(x);
+				if(current != null) {
+					Room up = data.get(y+1).get(x);
+					int rx = x - width/2;
+					int ry = y - height/2;
+					if(up != null) {
+						sr.begin(ShapeType.Filled);
+						sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
+						
+						Array<Room> roomSize = largeRooms.get(current);
+						if(roomSize != null && roomSize.contains(up,true))
+							sr.rect(rx*ROOM_WIDTH+wallOffset,(ry+1)*ROOM_HEIGHT-wallOffset,ROOM_WIDTH-2*wallOffset,wallOffset*2);
+						else if(current.connectedTo(up))
+							sr.rect((rx+0.5f)*ROOM_WIDTH-doorOffset,(ry+1)*ROOM_HEIGHT-wallOffset,2*doorOffset,2*wallOffset);
 						sr.end();
 					}
 				}

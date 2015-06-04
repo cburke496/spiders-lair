@@ -81,7 +81,8 @@ public class GameScreen implements Screen {
 		
 		shapeRenderer = new ShapeRenderer();
 
-		player = new Player(SpidersLair.WIDTH/2 - playerRad, SpidersLair.HEIGHT/2 - playerRad, playerRad);
+		//player = new Player(SpidersLair.WIDTH/2 - playerRad, SpidersLair.HEIGHT/2 - playerRad, playerRad);
+		player = new Player(-1 * playerRad, -1 * playerRad, playerRad);
 
 		raindrops = new Array<Rectangle>();
 		spawnRaindrop();
@@ -142,7 +143,9 @@ public class GameScreen implements Screen {
 		camera.update();
 		
 		shapeRenderer.setProjectionMatrix(camera.combined);
-		map.drawMap(shapeRenderer);
+		//map.drawMap(shapeRenderer); //Uncomment this line to display the entire map on the screen
+		map.drawMap(shapeRenderer, player.x, player.y);
+		//TODO: check where player is, if they're hitting a door/wall, update currentRoom, etc.
 
 		game.batch.setProjectionMatrix(camera.combined);
 		game.batch.begin();
