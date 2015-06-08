@@ -27,6 +27,10 @@ public class Map {
 	//The size of any doorway given as a percentage of the height of the whole room
 	private static final float DOOR_SIZE = 0.3f;
 	
+	/* The 2D array of rooms. In map coordinates, (0,0) is the bottom-left room,
+	 * (1,0) is the room to the right of that, etc. The room at map coordinates
+	 * (x,y) can be gotten from data.get(y).get(x).
+	 */
 	private Array<Array<Room>> data;
 	private Room currentRoom;
 	private int cx, cy;
@@ -279,6 +283,9 @@ public class Map {
 		}
 	}
 	
+	/** Draws the current rooms and the adjacent rooms. The center of the room 
+	 * at map coordinates (cx,cy) has world coordinates of (0,0).
+	 */
 	public void drawCurrentArea(ShapeRenderer sr) {
 		int height = data.size;
 		int width = data.get(0).size;
@@ -355,8 +362,8 @@ public class Map {
 	}
 	
 	/*
-	 * Returns a 2-element array with the world coordinates of the bottom
-	 * left-hand corner of the room with map coordinates (mapx, mapy)
+	 * Returns a 2-element array with the world coordinates of the 
+	 * center of the room with map coordinates (mapx, mapy)
 	 */
 	private int[] roomCoords(int mapx, int mapy) {
 		int[] coords = new int[2];
@@ -383,6 +390,64 @@ public class Map {
 			output += "\n";
 		}
 		return output;
+	}
+	
+	
+	/* Returns whether or not the player is hitting a wall. Also updates currentRoom*/
+	public boolean hittingWall(float px, float py, float rad) {
+		int wallOffset = (int) (WALL_SIZE / 2 * ROOM_HEIGHT);
+		int doorOffset = (int) (DOOR_SIZE / 2 * ROOM_HEIGHT);
+		
+		int mx = currentRoom.mapx(), my = currentRoom.mapy();//map coordinates
+		int[] coords = roomCoords(mx,my);
+		//world coordinates of bottom-left corner of room
+		int rx = coords[0] - ROOM_WIDTH/2, ry = coords[1] - ROOM_HEIGHT/2;
+		
+		Room up = my < data.size - 1 ? data.get(my+1).get(mx) : null;
+		Room down = my > 0 ? data.get(my-1).get(mx) : null;
+		Room right = mx < data.get(0).size - 1 ? data.get(my).get(mx+1) : null;
+		Room left = mx > 0 ? data.get(my).get(mx-1) : null;
+		Array<Room> neighbors = largeRooms.get(currentRoom);
+		if (neighbors == null) neighbors = new Array<Room>();
+		
+		if(px < rx + wallOffset) {
+			if((left != null && py >= ry + ROOM_HEIGHT/2 - doorOffset && py + 2*rad <= ry + ROOM_HEIGHT/2 + doorOffset) ||
+			   (neighbors.contains(left, true) && py >= ry + wallOffset && py + 2*rad <= ry + ROOM_HEIGHT - wallOffset)) {
+				if(px + rad < rx - wallOffset)
+					currentRoom = left;
+				return false;	
+			} else 
+				return true;
+		}
+		if(px + 2*rad > rx + ROOM_WIDTH - wallOffset) {
+			if((right != null && py >= ry + ROOM_HEIGHT/2 - doorOffset && py + 2*rad <= ry + ROOM_HEIGHT/2 + doorOffset) ||
+			   (neighbors.contains(right, true) && py >= ry + wallOffset && py + 2*rad <= ry + ROOM_HEIGHT - wallOffset)) {
+				if(px + rad > rx + ROOM_WIDTH + wallOffset)
+					currentRoom = right;
+				return false;
+			} else
+				return true;
+		}
+		if(py < ry + wallOffset) {
+			if((down != null && px >= rx + ROOM_WIDTH/2 - doorOffset && px + 2*rad <= rx + ROOM_WIDTH/2 + doorOffset) ||
+				neighbors.contains(down, true)) {
+				if(py + rad < ry - wallOffset) 
+					currentRoom = down;
+				return false;
+			} else
+				return true;
+		}
+		if(py + 2*rad > ry + ROOM_HEIGHT - wallOffset) {
+			if((up != null && px >= rx + ROOM_WIDTH/2 - doorOffset && px + 2*rad <= rx + ROOM_WIDTH/2 + doorOffset) ||
+				neighbors.contains(up, true)) {
+				if(py + rad > ry + ROOM_HEIGHT + wallOffset)
+					currentRoom = up;
+				return false;
+			} else
+				return true;
+		}
+		
+		return false;
 	}
 	
 	
