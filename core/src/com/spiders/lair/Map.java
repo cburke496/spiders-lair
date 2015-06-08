@@ -282,8 +282,7 @@ public class Map {
 	public void drawCurrentArea(ShapeRenderer sr) {
 		int height = data.size;
 		int width = data.get(0).size;
-		//int roomX = (currentRoom.mapx() - width/2) * ROOM_WIDTH + ROOM_WIDTH/2;
-		//int roomY = (currentRoom.mapy() - height/2) * ROOM_HEIGHT + ROOM_HEIGHT/2;
+
 		int roomX = currentRoom.mapx();
 		int roomY = currentRoom.mapy();
 		
@@ -294,13 +293,12 @@ public class Map {
 		for(int y = Math.max(0,roomY-1); y < Math.min(height,roomY+2); y++) {
 			for(int x = Math.max(0,roomX-1); x < Math.min(width,roomX+2); x++) {
 				if(data.get(y).get(x) != null) {
-					int rx = x - width/2;
-					int ry = y - height/2;
+					int[] coords = roomCoords(x,y);
 					sr.begin(ShapeType.Filled);
 					sr.setColor(WALL_COLOR[0],WALL_COLOR[1],WALL_COLOR[2],1f);
-					sr.rect(rx*ROOM_WIDTH-wallOffset,ry*ROOM_HEIGHT-wallOffset,ROOM_WIDTH+2*wallOffset,ROOM_HEIGHT+2*wallOffset);
+					sr.rect(coords[0]-wallOffset,coords[1]-wallOffset,ROOM_WIDTH+2*wallOffset,ROOM_HEIGHT+2*wallOffset);
 					sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
-					sr.rect(rx*ROOM_WIDTH+wallOffset,ry*ROOM_HEIGHT+wallOffset,ROOM_WIDTH-2*wallOffset,ROOM_HEIGHT-2*wallOffset);
+					sr.rect(coords[0]+wallOffset,coords[1]+wallOffset,ROOM_WIDTH-2*wallOffset,ROOM_HEIGHT-2*wallOffset);
 					sr.end();
 				}
 			}
@@ -316,17 +314,17 @@ public class Map {
 				Room current = data.get(y).get(x);
 				if(current != null) {
 					Room right = data.get(y).get(x+1);
-					int rx = x - width/2;
-					int ry = y - height/2;
+					int[] coords = roomCoords(x,y);
+					int[] rightCoords = roomCoords(x+1,y);
 					if(right != null) {
 						sr.begin(ShapeType.Filled);
 						sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
 						
 						Array<Room> roomSize = largeRooms.get(current);
 						if(roomSize != null && roomSize.contains(right, true))
-							sr.rect((rx+1)*ROOM_WIDTH-wallOffset,ry*ROOM_HEIGHT+wallOffset,2*wallOffset,ROOM_HEIGHT-2*wallOffset);
+							sr.rect(rightCoords[0]-wallOffset,coords[1]+wallOffset,2*wallOffset,ROOM_HEIGHT-2*wallOffset);
 						else if(current.connectedTo(right))
-							sr.rect((rx+1)*ROOM_WIDTH-wallOffset,(ry+0.5f)*ROOM_HEIGHT-doorOffset,2*wallOffset,2*doorOffset);
+							sr.rect(rightCoords[0]-wallOffset,coords[1]+ROOM_HEIGHT/2-doorOffset,2*wallOffset,2*doorOffset);
 						sr.end();
 					}
 				}
@@ -338,22 +336,38 @@ public class Map {
 				Room current = data.get(y).get(x);
 				if(current != null) {
 					Room up = data.get(y+1).get(x);
-					int rx = x - width/2;
-					int ry = y - height/2;
+					int[] coords = roomCoords(x,y);
+					int[] upCoords = roomCoords(x,y+1);
 					if(up != null) {
 						sr.begin(ShapeType.Filled);
 						sr.setColor(FLOOR_COLOR[0],FLOOR_COLOR[1],FLOOR_COLOR[2],1f);
 						
 						Array<Room> roomSize = largeRooms.get(current);
 						if(roomSize != null && roomSize.contains(up,true))
-							sr.rect(rx*ROOM_WIDTH+wallOffset,(ry+1)*ROOM_HEIGHT-wallOffset,ROOM_WIDTH-2*wallOffset,wallOffset*2);
+							sr.rect(coords[0]+wallOffset,upCoords[1]-wallOffset,ROOM_WIDTH-2*wallOffset,wallOffset*2);
 						else if(current.connectedTo(up))
-							sr.rect((rx+0.5f)*ROOM_WIDTH-doorOffset,(ry+1)*ROOM_HEIGHT-wallOffset,2*doorOffset,2*wallOffset);
+							sr.rect(coords[0]+ROOM_WIDTH/2-doorOffset,upCoords[1]-wallOffset,2*doorOffset,2*wallOffset);
 						sr.end();
 					}
 				}
 			}
 		}
+	}
+	
+	/*
+	 * Returns a 2-element array with the world coordinates of the bottom
+	 * left-hand corner of the room with map coordinates (mapx, mapy)
+	 */
+	private int[] roomCoords(int mapx, int mapy) {
+		int[] coords = new int[2];
+		
+		int height = data.size;
+		int width = data.get(0).size;
+		
+		coords[0] = (mapx - width/2) * ROOM_WIDTH;
+		coords[1] = (mapy - height/2) * ROOM_HEIGHT;
+		
+		return coords;
 	}
 	
 	public String toString() {
