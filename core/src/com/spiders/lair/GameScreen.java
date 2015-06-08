@@ -145,7 +145,10 @@ public class GameScreen implements Screen {
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		//map.drawMap(shapeRenderer); //Uncomment this line to display the entire map on the screen
 		map.drawCurrentArea(shapeRenderer);
-		//TODO: check where player is, if they're hitting a door/wall, update currentRoom, etc.
+		if(map.hittingWall(player.x, player.y, player.radius)) {
+			player.dx *= -1;
+			player.dy *= -1;
+		}//TODO: Implement something less sloppy than this bouncing to prevent player from walking through walls
 
 		game.batch.setProjectionMatrix(camera.combined);
 		game.batch.begin();
