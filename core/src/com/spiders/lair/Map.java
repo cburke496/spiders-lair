@@ -403,12 +403,21 @@ public class Map {
 		//world coordinates of bottom-left corner of room
 		int rx = coords[0] - ROOM_WIDTH/2, ry = coords[1] - ROOM_HEIGHT/2;
 		
-		Room up = my < data.size - 1 ? data.get(my+1).get(mx) : null;
-		Room down = my > 0 ? data.get(my-1).get(mx) : null;
-		Room right = mx < data.get(0).size - 1 ? data.get(my).get(mx+1) : null;
-		Room left = mx > 0 ? data.get(my).get(mx-1) : null;
 		Array<Room> neighbors = largeRooms.get(currentRoom);
 		if (neighbors == null) neighbors = new Array<Room>();
+		
+		Room up = my < data.size - 1 ? data.get(my+1).get(mx) : null;
+		if(!neighbors.contains(up, true) && !currentRoom.connectedTo(up))
+			up = null;
+		Room down = my > 0 ? data.get(my-1).get(mx) : null;
+		if(!neighbors.contains(down, true) && !currentRoom.connectedTo(down))
+			down = null;
+		Room right = mx < data.get(0).size - 1 ? data.get(my).get(mx+1) : null;
+		if(!neighbors.contains(right, true) && !currentRoom.connectedTo(right))
+			right = null;
+		Room left = mx > 0 ? data.get(my).get(mx-1) : null;
+		if(!neighbors.contains(left, true) && !currentRoom.connectedTo(left))
+			left = null;
 		
 		if(px < rx + wallOffset) {
 			if((left != null && py >= ry + ROOM_HEIGHT/2 - doorOffset && py + 2*rad <= ry + ROOM_HEIGHT/2 + doorOffset) ||
